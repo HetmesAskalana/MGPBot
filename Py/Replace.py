@@ -111,7 +111,7 @@ def main():
     members = data['query']['categorymembers'];
 
     for page in members:
-        page_replace($page['pageid'], "Category:蔚蓝档案其它图片", "Category:蔚蓝档案其他图片", "ZH");
+        page_replace(page['pageid'], "Category:蔚蓝档案其它图片", "Category:蔚蓝档案其他图片", "ZH");
 
 
 
