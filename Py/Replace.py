@@ -1,9 +1,11 @@
-#群里先毛一个来用着
 #!/usr/bin/python3
 
 import requests;
 import re;
+import os;
 import time;
+import json;
+
 
 def get_text(pageid, section = "", spaceid = 'ZH'):
     workspace = WORKSPACE[spaceid]
@@ -18,7 +20,7 @@ def get_text(pageid, section = "", spaceid = 'ZH'):
         PARAMS.pop('section')
     res = workspace['SESSION'].get(url=workspace['URL'], params=PARAMS)
     data = res.json()
-    print(data)
+    #print(data)
     return data['parse']['wikitext']['*']
 
 
@@ -35,9 +37,12 @@ def login(spaceid = 'ZH'):
     R = workspace['SESSION'].get(url=workspace['URL'], params=PARAMS_0)
 
     DATA = R.json()
-    
+
     LOGIN_TOKEN = DATA['query']['tokens']['logintoken']
-    
+
+    # Step 2: POST request to log in. Use of main account for login is not
+    # supported. Obtain credentials via Special:BotPasswords
+    # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
     PARAMS_1 = {
         "action": "login",
         "lgname": workspace['lgname'],
@@ -48,6 +53,9 @@ def login(spaceid = 'ZH'):
 
     R = workspace['SESSION'].post(workspace['URL'], data=PARAMS_1)
     DATA = R.json()
+    #print(DATA)
+
+    # Step 3: GET request to fetch CSRF token
     PARAMS_2 = {
         "action": "query",
         "meta": "tokens",
@@ -56,7 +64,7 @@ def login(spaceid = 'ZH'):
 
     R = workspace['SESSION'].get(url=workspace['URL'], params=PARAMS_2)
     DATA = R.json()
-    #print(DATA)
+    print(DATA)
     workspace['csrftoken'] = DATA['query']['tokens']['csrftoken']
     return workspace['csrftoken']
 
@@ -69,6 +77,7 @@ def page_edit(pageid, text, minor = False, summary = "", spaceid = 'ZH'):
         "text": text,
         "token": workspace['csrftoken'],
         "tags": "Bot",
+        "bot": True,
         "format": "json"
     }
     if minor:
@@ -97,23 +106,37 @@ def page_regsub(pageid, find, replace, spaceid = 'ZH'):
     page_edit(pageid, wikitext, True, "文本替换 - 替换『" + find + "』为『" + replace + "』", spaceid)
 
 
+
 def main():
-    login('ZH');
-    PARAMS = {
-        "action": "query",
-        "format": "json",
-        "list": "categorymembers",
-        "cmtitle": "Category:蔚蓝档案其它图片",
-        "cmlimit": "max"
-    };
-    res = WORKSPACE['COM']['SESSION'].get(url=WORKSPACE['COM']['URL'], params=PARAMS);
-    data = res.json();
-    members = data['query']['categorymembers'];
-
-    for page in members:
-        page_replace(page['pageid'], "Category:蔚蓝档案其它图片", "Category:蔚蓝档案其他图片", "ZH");
-
-
+    login('COM');
+    workspace = WORKSPACE['COM'];
+    fileList = os.listdir(FILEPATH);
+    list1=[];
+    for name in fileList:
+        if os.path.splitext(name)[1] != ".jpg":
+            continue;
+        list1.append(os.path.splitext(name)[0]+os.path.splitext(name)[1]);
+    for fileName in fileList:
+        PARAMS = {
+            "action": "upload",
+            "format": "json",
+            "smaxage": "0",
+            "filename": fileName,
+            "text": "[[Category:蔚蓝档案CG]]",
+            "watchlist": "nochange",
+            "token": workspace['csrftoken'],
+            "tags": "Bot"
+        };
+        FILE = {'file':(fileName, open(FILEPATH+fileName, 'rb'), 'multipart/form-data')};
+        R = workspace['SESSION'].post(url=WORKSPACE['COM']['URL'], files=FILE, data=PARAMS);
+        DATA = R.json();
+        if DATA['upload']['result'] == 'Success':
+            print(fileName + "已成功上传");
+        else:
+            print(fileName + "上传失败");
+            print(DATA);
+    print("exit");
+        
 
 if __name__ == '__main__':
     main()
