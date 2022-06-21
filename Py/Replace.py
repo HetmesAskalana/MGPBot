@@ -93,6 +93,30 @@ def page_edit(pageid, text, minor = False, summary = "", spaceid = 'ZH'):
     print(data)
     return data
 
+def editAsTitle(title, text, minor = False, summary = "", spaceid = 'ZH'):
+    workspace = WORKSPACE[spaceid]
+    PARAMS = {
+        "action": "edit",
+        "title": title,
+        "text": text,
+        "token": workspace['csrftoken'],
+        "tags": "Bot",
+        "bot": True,
+        "format": "json"
+    }
+    if minor:
+        PARAMS["minor"] = True
+    if summary != "":
+        PARAMS["summary"] = summary
+    res = workspace['SESSION'].post(workspace['URL'], data=PARAMS)
+    data = res.json()
+    if 'error' in res and res['error']['code'] == 'permissiondenied':
+        PARAMS['token'] = workspace['csrftoken'] = login(spaceid)
+        res = workspace['SESSION'].post(workspace['URL'], data=PARAMS)
+        data = res.json()
+    print(data)
+    return data
+
 
 def page_replace(pageid, find, replace, spaceid = 'ZH'):
     wikitext = get_text(pageid, "", spaceid)
@@ -105,12 +129,9 @@ def page_regsub(pageid, find, replace, spaceid = 'ZH'):
     wikitext = re.sub(find, replace, wikitext)
     page_edit(pageid, wikitext, True, "文本替换 - 替换『" + find + "』为『" + replace + "』", spaceid)
 
-
-
-def main():
-    login('COM');
+def upload_file():
     workspace = WORKSPACE['COM'];
-    fileList = os.listdir(FILEPATH);
+    fileList = os.listdir("");
     list1=[];
     for name in fileList:
         if os.path.splitext(name)[1] != ".jpg":
@@ -127,7 +148,7 @@ def main():
             "token": workspace['csrftoken'],
             "tags": "Bot"
         };
-        FILE = {'file':(fileName, open(FILEPATH+fileName, 'rb'), 'multipart/form-data')};
+        FILE = {'file':(fileName, open("D:/DATA/蔚蓝档案/解包/语音/php/test1/UIs/03_Scenario/01_Background/"+fileName, 'rb'), 'multipart/form-data')};
         R = workspace['SESSION'].post(url=WORKSPACE['COM']['URL'], files=FILE, data=PARAMS);
         DATA = R.json();
         if DATA['upload']['result'] == 'Success':
@@ -136,7 +157,46 @@ def main():
             print(fileName + "上传失败");
             print(DATA);
     print("exit");
+#该函数无效，需要拎出来用
+
+def delete_s(pages, reason, spaceid = "ZH"):
+    for page in pages:
+        editAsTitle(page, "<noinclude>{{即将删除|1="+ reason +"|user=HetmesAskalana}}</noinclude>", False, "挂删："+ reason, spaceid);
+        time.sleep(20)
+
+def readLine(path):
+    file = open(path, 'r', encoding='utf-8');
+    list1 = [];
+    while True:
+        tmp = file.readline();
+        if not tmp:
+            break;
+        list1.append(tmp);
+    return list1;
+
+
+
+def main():
+    login('COM');
+    pagelist = readLine("");
+    delete_s(pagelist, "命名错误的文件及其移动后残留的重定向", "COM");
+
+    '''PARAMS = {
+        "action": "query",
+        "format": "json",
+        "list": "search",
+        "srsearch": "奥利斯分校"
+    }
+    res = WORKSPACE['ZH']['SESSION'].get(url=WORKSPACE['ZH']['URL'], params=PARAMS);
+    data = res.json();
+    members = data['query']['search'];
+    print(members);
+
+    for page in members:
+        page_replace(page['pageid'], "奥利斯分校", "阿里乌斯分校", 'ZH')'''
         
+
+
 
 if __name__ == '__main__':
     main()
