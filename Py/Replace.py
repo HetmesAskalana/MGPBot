@@ -226,21 +226,8 @@ def movePage(src, to, reason, noredirect = True, sub = False, talk = True, space
 def main():
     login('COM');
 
-    '''pagelist = readLine("");
+    '''pagelist = readLine("D:/DATA/萌百/bot/test.txt");
     delete_s(pagelist, "移动导致的重复上传", "COM");'''
-
-    PARAMS = {
-        "action": "query",
-        "format": "json",
-        "list": "categorymembers",
-        "cmtitle": "Category:蔚蓝档案语音",
-        "cmnamespace": "6",
-        "cmlimit": "1"
-    }
-    res = WORKSPACE['COM']['SESSION'].get(url=WORKSPACE['COM']['URL'], params=PARAMS);
-    data = res.json();
-    members = data['query']['categorymembers'];
-    #print(members);
     names = {
         'Shiroko' : '砂狼白子', 'Hoshino' : '小鸟游星野', 'Ayane' : '奥空绫音', 'Serika' : '黑见茜香' , 'Nonomi' : '十六夜野乃美',#阿拜多斯
         'Iroha': '枣伊吕波', 'Hina':'空崎阳奈', 'Ako':'天雨亚子', 'Iori':'银镜伊织', 'Chinatsu': '日野宫千夏', 'Aru': '陆八魔亚瑠', 'Kayoko':'鬼方佳世子', 'Mutsuki': '浅黄无月', 'Haruka': '伊草遥香', 'Haruna': '黑馆羽留奈', 'Izumi': '狮子堂泉', 'Zunko': '赤司淳子', 'Akari': '鳄渊亚伽里', 'Fuuka': '爱清风华', 'Juri': '牛牧茱莉', 'Sena': '冰室濑奈', #格黑娜
@@ -253,25 +240,39 @@ def main():
         'Hiyori':'槌永日和','Misaki':'戒野美咲','Atsuko':'秤亚津子',#阿里乌斯
         'Miku':'初音未来'#其他
     };
-    flag = [];
+    '''PARAMS = {
+        "action": "query",
+        "format": "json",
+        "list": "categorymembers",
+        "cmtitle": "Category:蔚蓝档案语音",
+        "cmnamespace": "6",
+        "cmlimit": "1"
+    }
+    res = WORKSPACE['COM']['SESSION'].get(url=WORKSPACE['COM']['URL'], params=PARAMS);
+    data = res.json();
+    members = data['query']['categorymembers'];
+    #print(members);
 
-    for page in members:
+    flag = [];'''
+
+    '''for page in members:
         tmp = page['title'].split(" ");
-        category_replace(page['pageid'], "蔚蓝档案语音", names[tmp[2]]+"语音", 'COM');
-        '''if not flag[names[tmp[2]]]:
-            PARAMS = {
-                "action": "query",
-                "format": "json",
-                "prop": "revisions",
-                "titles": "Category:"+names[tmp[2]]+"语音",
-                "rvprop": "content"
-            }
-            res = WORKSPACE['COM']['SESSION'].get(url=WORKSPACE['COM']['URL'], params=PARAMS);
-            data = res.json();
-            if data['query']['pages']['-1']:
-                wikitext = "{{catnav|蔚蓝档案|蔚蓝档案语音}} \n {{catnav|人物|...|蔚蓝档案中角色|"+names[tmp[2]]+"}} \n [[Category:蔚蓝档案语音]] \n [[Category:"+names[tmp[2]]+"| ]]";
-                editAsTitle("Category:"+names[tmp[2]]+"语音", wikitext, False, "创建分类: Category"+names[tmp[2]], "COM");
-                flag[names[tmp[2]]] = True;'''
+        category_replace(page['pageid'], "蔚蓝档案语音", names[tmp[2]]+"语音", 'COM');'''
+    
+    '''for item in names.items():
+        PARAMS = {
+            "action": "query",
+            "format": "json",
+            "prop": "revisions",
+            "titles": "Category:"+item[1]+"语音",
+            "rvprop": "content"
+        }
+        res = WORKSPACE['COM']['SESSION'].get(url=WORKSPACE['COM']['URL'], params=PARAMS);
+        data = res.json();
+        if data['query']['pages']['-1']:
+            wikitext = "{{catnav|蔚蓝档案|蔚蓝档案语音}}\n{{catnav|人物|...|蔚蓝档案中角色|"+item[1]+"}}\n[[Category:蔚蓝档案语音]]\n[[Category:"+item[1]+"| ]]";
+            editAsTitle("Category:"+item[1]+"语音", wikitext, False, "创建分类: Category"+item[1], "COM");
+            break;'''
 
 
 if __name__ == '__main__':
