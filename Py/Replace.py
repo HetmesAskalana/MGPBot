@@ -10,7 +10,6 @@ import time;
 import json;
 
 
-
 def get_text(pageid, section = "", spaceid = 'ZH'):
     workspace = WORKSPACE[spaceid]
     PARAMS = {
@@ -148,6 +147,11 @@ def page_replace_as_title(title, find, replace, spaceid = 'ZH'):
     wikitext = wikitext.replace(find, replace)
     editAsTitle(title, wikitext, True, "文本替换 - 替换『" + find + "』为『" + replace + "』", spaceid)
 
+def category_replace(pageid, find, replace, spaceid = 'ZH'):
+    wikitext = get_text(pageid, "", spaceid)
+    wikitext = re.sub(r"\[\[(Category|分类):%s\]\]"%find, "[[Category:"+replace+"]]", wikitext);
+    page_edit(pageid, wikitext, True, "分类替换 - 替换『Category:" + find + "』为『Category:" + replace + "』", spaceid);
+
 def page_regsub(pageid, find, replace, spaceid = 'ZH'):
     wikitext = get_text(pageid, "", spaceid)
     wikitext = re.sub(find, replace, wikitext)
@@ -228,20 +232,46 @@ def main():
     PARAMS = {
         "action": "query",
         "format": "json",
-        "list": "search",
-        "srsearch": "BA_V_Atsuko",
-        "srnamespace": "6",
-        "srlimit": "max"
+        "list": "categorymembers",
+        "cmtitle": "Category:蔚蓝档案语音",
+        "cmnamespace": "6",
+        "cmlimit": "1"
     }
     res = WORKSPACE['COM']['SESSION'].get(url=WORKSPACE['COM']['URL'], params=PARAMS);
     data = res.json();
-    members = data['query']['search'];
-    print(members);
+    members = data['query']['categorymembers'];
+    #print(members);
+    names = {
+        'Shiroko' : '砂狼白子', 'Hoshino' : '小鸟游星野', 'Ayane' : '奥空绫音', 'Serika' : '黑见茜香' , 'Nonomi' : '十六夜野乃美',#阿拜多斯
+        'Iroha': '枣伊吕波', 'Hina':'空崎阳奈', 'Ako':'天雨亚子', 'Iori':'银镜伊织', 'Chinatsu': '日野宫千夏', 'Aru': '陆八魔亚瑠', 'Kayoko':'鬼方佳世子', 'Mutsuki': '浅黄无月', 'Haruka': '伊草遥香', 'Haruna': '黑馆羽留奈', 'Izumi': '狮子堂泉', 'Zunko': '赤司淳子', 'Akari': '鳄渊亚伽里', 'Fuuka': '爱清风华', 'Juri': '牛牧茱莉', 'Sena': '冰室濑奈', #格黑娜
+        'Yuuka': '早濑优香', 'Midori':'才羽绿', 'Yuuzu': '花冈柚子', 'Aris': '天童爱丽丝', 'Momoi': '才羽桃井', 'Hibiki': '猫冢响', 'Utaha':'白石咏叶', 'Kotori':'丰见亚都梨', 'Chihiro': '各务千寻', 'Maki': '小涂真纪', 'Hare': '小钩晴', 'Kotama':'音濑小玉', 'Karin': '角楯花凛', 'Neru': '美甘宁瑠', 'Akane': '室笠朱音', 'Asuna': '一之濑明日奈', 'Sumire': '乙花堇', 'Eimi': '和泉元英美',#千年
+        'Hifumi': '阿慈谷日步美', 'Azusa': '白洲梓', 'Koharu': '下江小春', 'Hanako': '浦和花子', 'Tsurugi': '剑先弦生', 'Mashiro': '静山麻白', 'Hasumi': '羽川莲实', 'Natsu': '柚鸟夏', 'Airi': '栗村爱莉', 'Yoshimi': '伊原木喜美', 'Hanae': '朝颜花绘', 'Serina': '鹫见芹奈', 'Ui': '古关忧', 'Shimiko': '圆堂志美子', 'Suzumi': '守月铃美', 'Hinata': '若叶日向', 'Mari': '伊落玛丽',#三一
+        'Shizuko':'河和静子','Pina':'朝比奈菲娜','Mimori':'水羽三森','Kaede':'勇美枫','Tsubaki':'春日椿','Chise':'和乐知世','Izuna':'久田伊树菜','Tsukuyo':'大野筑夜','Michiru':'千鸟满','Wakamo':'狐坂若藻',#百鬼
+        'Shun':'春原旬','Saya':'药子沙耶','Cherino':'连河洁莉诺','Marina':'池仓玛丽娜','Michiru':'佐城智惠','Nodoka':'天见和香',#山海经
+        'Kirino':'中务桐乃','Fubuki':'合欢垣吹雪',#瓦尔基里
+        'Miyako':'月雪宫子','Saki':'空井咲','Miyu':'霞泽美游',#SRT
+        'Hiyori':'槌永日和','Misaki':'戒野美咲','Atsuko':'秤亚津子',#阿里乌斯
+        'Miku':'初音未来'#其他
+    };
+    flag = [];
 
-    '''for page in members:
-        page_replace(page['pageid'], "Category:蔚蓝档案语音", "Category:秤亚津子语音", 'ZH')'''
-        
-
+    for page in members:
+        tmp = page['title'].split(" ");
+        category_replace(page['pageid'], "蔚蓝档案语音", names[tmp[2]]+"语音", 'COM');
+        '''if not flag[names[tmp[2]]]:
+            PARAMS = {
+                "action": "query",
+                "format": "json",
+                "prop": "revisions",
+                "titles": "Category:"+names[tmp[2]]+"语音",
+                "rvprop": "content"
+            }
+            res = WORKSPACE['COM']['SESSION'].get(url=WORKSPACE['COM']['URL'], params=PARAMS);
+            data = res.json();
+            if data['query']['pages']['-1']:
+                wikitext = "{{catnav|蔚蓝档案|蔚蓝档案语音}} \n {{catnav|人物|...|蔚蓝档案中角色|"+names[tmp[2]]+"}} \n [[Category:蔚蓝档案语音]] \n [[Category:"+names[tmp[2]]+"| ]]";
+                editAsTitle("Category:"+names[tmp[2]]+"语音", wikitext, False, "创建分类: Category"+names[tmp[2]], "COM");
+                flag[names[tmp[2]]] = True;'''
 
 
 if __name__ == '__main__':
